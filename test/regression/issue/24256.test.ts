@@ -44,4 +44,5 @@ test("setting onmessage inside worker should keep the process alive (bun specifi
   const exited = await Promise.race([proc.exited, Bun.sleep(300).then(() => 0)]);
   expect(exited).toBe(0);
   proc.kill();
+  await proc.exited;
 }, 2000);
