@@ -5,15 +5,13 @@ test("setting onmessage on main thread global should terminate the process", asy
   await using proc = Bun.spawn({
     cmd: [bunExe(), "-e", /* js */ `globalThis.onmessage = () => {};`],
     env: bunEnv,
-    stdout: "pipe",
-    stderr: "pipe",
   });
 
   const exitCode = await proc.exited;
   expect(exitCode).toBe(0);
 }, 2000);
 
-test("setting onmessage inside ShadowRealm should termiante the process", async () => {
+test("setting onmessage inside ShadowRealm should terminate the process", async () => {
   await using proc = Bun.spawn({
     cmd: [
       bunExe(),
@@ -24,8 +22,6 @@ test("setting onmessage inside ShadowRealm should termiante the process", async 
       `,
     ],
     env: bunEnv,
-    stdout: "pipe",
-    stderr: "pipe",
   });
 
   const exitCode = await proc.exited;
@@ -43,11 +39,9 @@ test("setting onmessage inside worker should keep the process alive (bun specifi
       `,
     ],
     env: bunEnv,
-    stdout: "pipe",
-    stderr: "pipe",
   });
 
-  const exited = await Promise.race([proc.exited.then(() => 1), Bun.sleep(300).then(() => 0)]);
+  const exited = await Promise.race([proc.exited, Bun.sleep(300).then(() => 0)]);
   expect(exited).toBe(0);
   proc.kill();
 }, 2000);
