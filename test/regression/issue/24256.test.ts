@@ -9,7 +9,7 @@ test("setting onmessage on main thread global should terminate the process", asy
 
   const exitCode = await proc.exited;
   expect(exitCode).toBe(0);
-}, 2000);
+});
 
 test("setting onmessage inside ShadowRealm should terminate the process", async () => {
   await using proc = Bun.spawn({
@@ -26,7 +26,7 @@ test("setting onmessage inside ShadowRealm should terminate the process", async 
 
   const exitCode = await proc.exited;
   expect(exitCode).toBe(0);
-}, 2000);
+});
 
 test("setting onmessage inside worker should keep the process alive (bun specific)", async () => {
   await using proc = Bun.spawn({
@@ -45,4 +45,4 @@ test("setting onmessage inside worker should keep the process alive (bun specifi
   expect(exited).toBe(0);
   proc.kill();
   await proc.exited;
-}, 2000);
+});
