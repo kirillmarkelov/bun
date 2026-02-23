@@ -1,0 +1,53 @@
+import { expect, test } from "bun:test";
+import { bunEnv, bunExe } from "harness";
+
+test("setting onmessage on main thread global should terminate the process", async () => {
+  await using proc = Bun.spawn({
+    cmd: [bunExe(), "-e", /* js */ `globalThis.onmessage = () => {};`],
+    env: bunEnv,
+    stdout: "pipe",
+    stderr: "pipe",
+  });
+
+  const exitCode = await proc.exited;
+  expect(exitCode).toBe(0);
+}, 2000);
+
+test("setting onmessage inside ShadowRealm should termiante the process", async () => {
+  await using proc = Bun.spawn({
+    cmd: [
+      bunExe(),
+      "-e",
+      /* js */ `
+      const realm = new ShadowRealm();
+      realm.evaluate('globalThis.onmessage = () => {};');
+      `,
+    ],
+    env: bunEnv,
+    stdout: "pipe",
+    stderr: "pipe",
+  });
+
+  const exitCode = await proc.exited;
+  expect(exitCode).toBe(0);
+}, 2000);
+
+test("setting onmessage inside worker should keep the process alive (bun specific)", async () => {
+  await using proc = Bun.spawn({
+    cmd: [
+      bunExe(),
+      "-e",
+      /* js */ `
+      const { Worker } = require("worker_threads");
+      new Worker("globalThis.onmessage = () => {};", { eval: true });
+      `,
+    ],
+    env: bunEnv,
+    stdout: "pipe",
+    stderr: "pipe",
+  });
+
+  const exited = await Promise.race([proc.exited.then(() => 1), Bun.sleep(300).then(() => 0)]);
+  expect(exited).toBe(0);
+  proc.kill();
+}, 2000);
